@@ -1,9 +1,9 @@
-from typing import Any, List, Optional, TypedDict
+from typing import Any, Optional, TypedDict
 
 from pytest_opentelemetry_exporter.types import BatchesData, KeyValue, SpanKind
 
 
-def get_attribute(attributes: List[KeyValue], key: str) -> Any:
+def get_attribute(attributes: list[KeyValue], key: str) -> Any:
     """
     Retrieve the value for a given key from the list of attributes.
     Handles different value types: stringValue, intValue, doubleValue.

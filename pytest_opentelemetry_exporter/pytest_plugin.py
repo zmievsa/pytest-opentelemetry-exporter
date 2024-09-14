@@ -1,8 +1,10 @@
 # pytest_otel_plugin.py
 
+import logging
 import os
 import sqlite3
 import uuid
+from typing import Any
 
 import backoff
 import pytest
@@ -16,22 +18,21 @@ span_ids = []
 def get_db_connection():
     """Establish a connection to the shared SQLite database."""
     db_path = "shared_data.db"  # Path to your shared SQLite database
-    conn = sqlite3.connect(db_path)
-    return conn
+    return sqlite3.connect(db_path)
 
 
-def save_id_to_db(table_name, id_value):
+def save_id_to_db(table_name: str, id_value: str):
     """Save the generated ID to the specified table in the SQLite database."""
     conn = get_db_connection()
     cursor = conn.cursor()
     # Insert the ID into the table
-    cursor.execute(f"INSERT OR IGNORE INTO {table_name} (id) VALUES (?)", (id_value,))
+    cursor.execute("INSERT OR IGNORE INTO ? (id) VALUES (?)", (table_name, id_value))
     conn.commit()
     conn.close()
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_db():
+def _setup_db() -> None:
     """Set up the database before running tests."""
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -59,7 +60,7 @@ def trace_id():
     save_id_to_db("trace_ids", _trace_id)
     # Append to the list for use after tests
     trace_ids.append(_trace_id)
-    yield _trace_id
+    return _trace_id
 
 
 @pytest.fixture
@@ -71,23 +72,23 @@ def span_id():
     save_id_to_db("span_ids", _span_id)
     # Append to the list for use after tests
     span_ids.append(_span_id)
-    yield _span_id
+    return _span_id
 
 
 # Define a function with retries using exponential backoff and jitter
 @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_time=10, jitter=backoff.random_jitter)
-def fetch_trace_data(url):
-    response = requests.get(url)
+def fetch_trace_data(url: str):
+    response = requests.get(url, timeout=15)
     response.raise_for_status()
     return response.text
 
 
-def pytest_sessionfinish(session, exitstatus):
+def pytest_sessionfinish(session: Any, exitstatus: Any):
     """Hook that runs after the entire test session finishes."""
     # Get the endpoint from the environment variable
     endpoint = os.environ.get("PYTEST_OTEL_EXPORT_QUERY_ENDPOINT")
     if not endpoint:
-        print("Environment variable PYTEST_OTEL_EXPORT_QUERY_ENDPOINT is not set.")
+        logging.warning("Environment variable PYTEST_OTEL_EXPORT_QUERY_ENDPOINT is not set.")
         return
 
     conn = get_db_connection()
@@ -95,14 +96,9 @@ def pytest_sessionfinish(session, exitstatus):
 
     for trace_id in trace_ids:
         url = f"{endpoint}/api/traces/{trace_id}"
-        try:
-            json_data = fetch_trace_data(url)
-            # Save the JSON data to the database
-            cursor.execute(
-                "INSERT OR REPLACE INTO traces_data (trace_id, json_data) VALUES (?, ?)", (trace_id, json_data)
-            )
-        except requests.RequestException as e:
-            print(f"Error fetching trace data for trace_id {trace_id}: {e}")
+        json_data = fetch_trace_data(url)
+        # Save the JSON data to the database
+        cursor.execute("INSERT OR REPLACE INTO traces_data (trace_id, json_data) VALUES (?, ?)", (trace_id, json_data))
 
     conn.commit()
     conn.close()

@@ -1,5 +1,5 @@
-from enum import Enum, IntEnum
-from typing import List, Optional
+from enum import Enum
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, root_validator
 
@@ -27,7 +27,7 @@ class AnyValue(BaseModel):
     bytesValue: Optional[bytes] = None
 
     @root_validator(pre=True)
-    def check_oneof(cls, values):
+    def check_oneof(cls, values: dict[str, Any]):
         fields = [
             "stringValue",
             "boolValue",
@@ -47,7 +47,7 @@ class ArrayValue(BaseModel):
     """ArrayValue is a list of AnyValue messages. We need ArrayValue as a message
     since oneof in AnyValue does not allow repeated fields."""
 
-    values: List[AnyValue] = Field(..., description="Array of values. The array may be empty (contain 0 elements).")
+    values: list[AnyValue] = Field(..., description="Array of values. The array may be empty (contain 0 elements).")
 
 
 class KeyValue(BaseModel):
@@ -65,7 +65,7 @@ class KeyValueList(BaseModel):
     avoid unnecessary extra wrapping (which slows down the protocol). The 2 approaches
     are semantically equivalent."""
 
-    values: List[KeyValue] = Field(
+    values: list[KeyValue] = Field(
         ...,
         description=(
             "A collection of key/value pairs of key-value pairs. The list may be empty "
@@ -82,7 +82,7 @@ class Resource(BaseModel):
     Attribute keys MUST be unique (it is not allowed to have more than one
     attribute with the same key)."""
 
-    attributes: List[KeyValue] = Field(
+    attributes: list[KeyValue] = Field(
         ...,
         description=(
             "Set of attributes that describe the resource. Attribute keys MUST be unique "
@@ -103,7 +103,7 @@ class InstrumentationScope(BaseModel):
 
     name: Optional[str] = None
     version: Optional[str] = None
-    attributes: Optional[List[KeyValue]] = None
+    attributes: Optional[list[KeyValue]] = None
     droppedAttributesCount: Optional[int] = None
 
 
@@ -146,7 +146,7 @@ class Event(BaseModel):
         ...,
         description=("name of the event.\n\nThis field is semantically required to be set to non-empty string."),
     )
-    attributes: Optional[List[KeyValue]] = Field(
+    attributes: Optional[list[KeyValue]] = Field(
         None,
         description=(
             "attributes is a collection of attribute key/value pairs on the event. Attribute keys MUST be unique "
@@ -173,7 +173,7 @@ class Link(BaseModel):
     )
     spanId: bytes = Field(..., description="A unique identifier for the linked span. The ID is an 8-byte array.")
     traceState: Optional[str] = Field(None, description="The trace_state associated with the link.")
-    attributes: Optional[List[KeyValue]] = Field(
+    attributes: Optional[list[KeyValue]] = Field(
         None,
         description=(
             "attributes is a collection of attribute key/value pairs on the link. Attribute keys MUST be unique "
@@ -291,7 +291,7 @@ class Span(BaseModel):
             "This field is semantically required and it is expected that end_time >= start_time."
         ),
     )
-    attributes: Optional[List[KeyValue]] = Field(
+    attributes: Optional[list[KeyValue]] = Field(
         None,
         description=(
             "attributes is a collection of key/value pairs. Note, global attributes like server name can be set using the "
@@ -314,7 +314,7 @@ class Span(BaseModel):
         ),
     )
 
-    links: Optional[List["Link"]] = Field(
+    links: Optional[list["Link"]] = Field(
         None,
         description=(
             "links is a collection of Links, which are references from this span to a span in the same or different trace."
@@ -333,7 +333,7 @@ class Span(BaseModel):
             "i.e. assume STATUS_CODE_UNSET (code = 0)."
         ),
     )
-    events: Optional[List[Event]] = Field(None, description="events is a collection of Event items.")
+    events: Optional[list[Event]] = Field(None, description="events is a collection of Event items.")
     droppedEventsCount: Optional[int] = Field(
         None,
         description=(
@@ -352,7 +352,7 @@ class ScopeSpans(BaseModel):
             "isn't set, it is equivalent with an empty instrumentation scope name (unknown)."
         ),
     )
-    spans: List[Span] = Field(..., description="A list of Spans that originate from an instrumentation scope.")
+    spans: list[Span] = Field(..., description="A list of Spans that originate from an instrumentation scope.")
     schemaUrl: Optional[str] = Field(
         None,
         description=(
@@ -371,7 +371,7 @@ class ResourceSpans(BaseModel):
             "The resource for the spans in this message. If this field is not set then no resource info is known."
         ),
     )
-    scopeSpans: List[ScopeSpans] = Field(..., description="A list of ScopeSpans that originate from a resource.")
+    scopeSpans: list[ScopeSpans] = Field(..., description="A list of ScopeSpans that originate from a resource.")
     schemaUrl: Optional[str] = Field(
         None,
         description=(
@@ -394,7 +394,7 @@ class TracesData(BaseModel):
     When new fields are added into this message, the OTLP request MUST be updated
     as well."""
 
-    resourceSpans: List[ResourceSpans] = Field(
+    resourceSpans: list[ResourceSpans] = Field(
         ...,
         description=(
             "An array of ResourceSpans. For data coming from a single resource this array will typically contain one element. "
@@ -405,4 +405,4 @@ class TracesData(BaseModel):
 
 
 class BatchesData(BaseModel):
-    batches: List[ResourceSpans]
+    batches: list[ResourceSpans]

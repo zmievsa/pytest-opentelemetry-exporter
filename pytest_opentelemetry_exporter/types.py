@@ -1,4 +1,4 @@
-from typing import List, Literal, TypedDict
+from typing import Literal, TypedDict
 
 from typing_extensions import NotRequired
 
@@ -37,7 +37,7 @@ class ArrayValue(TypedDict):
     """ArrayValue is a list of AnyValue messages. We need ArrayValue as a message
     since oneof in AnyValue does not allow repeated fields."""
 
-    values: List[AnyValue]
+    values: list[AnyValue]
 
 
 class KeyValue(TypedDict):
@@ -55,7 +55,7 @@ class KeyValueList(TypedDict):
     avoid unnecessary extra wrapping (which slows down the protocol). The 2 approaches
     are semantically equivalent."""
 
-    values: List[KeyValue]
+    values: list[KeyValue]
 
 
 class Resource(TypedDict):
@@ -65,7 +65,7 @@ class Resource(TypedDict):
     Attribute keys MUST be unique (it is not allowed to have more than one
     attribute with the same key)."""
 
-    attributes: List[KeyValue]
+    attributes: list[KeyValue]
     droppedAttributesCount: NotRequired[int]
 
 
@@ -74,7 +74,7 @@ class InstrumentationScope(TypedDict, total=False):
 
     name: NotRequired[str]
     version: NotRequired[str]
-    attributes: NotRequired[List[KeyValue]]
+    attributes: NotRequired[list[KeyValue]]
     droppedAttributesCount: NotRequired[int]
 
 
@@ -92,7 +92,7 @@ class Event(TypedDict):
 
     timeUnixNano: int
     name: str
-    attributes: NotRequired[List[KeyValue]]
+    attributes: NotRequired[list[KeyValue]]
     droppedAttributesCount: NotRequired[int]
 
 
@@ -105,7 +105,7 @@ class Link(TypedDict):
     traceId: str
     spanId: str
     traceState: NotRequired[str]
-    attributes: NotRequired[List[KeyValue]]
+    attributes: NotRequired[list[KeyValue]]
     droppedAttributesCount: NotRequired[int]
     flags: NotRequired[int]
 
@@ -124,12 +124,12 @@ class Span(TypedDict):
     kind: NotRequired[SpanKind]
     startTimeUnixNano: int
     endTimeUnixNano: int
-    attributes: NotRequired[List[KeyValue]]
+    attributes: NotRequired[list[KeyValue]]
     droppedAttributesCount: NotRequired[int]
-    links: NotRequired[List[Link]]
+    links: NotRequired[list[Link]]
     droppedLinksCount: NotRequired[int]
     status: NotRequired[Status]
-    events: NotRequired[List[Event]]
+    events: NotRequired[list[Event]]
     droppedEventsCount: NotRequired[int]
 
 
@@ -137,7 +137,7 @@ class ScopeSpans(TypedDict):
     """A collection of Spans produced by an InstrumentationScope."""
 
     scope: NotRequired[InstrumentationScope]
-    spans: List[Span]
+    spans: list[Span]
     schemaUrl: NotRequired[str]
 
 
@@ -145,7 +145,7 @@ class ResourceSpans(TypedDict):
     """A collection of ScopeSpans from a Resource."""
 
     resource: NotRequired[Resource]
-    scopeSpans: List[ScopeSpans]
+    scopeSpans: list[ScopeSpans]
     schemaUrl: NotRequired[str]
 
 
@@ -161,8 +161,8 @@ class TracesData(TypedDict):
     When new fields are added into this message, the OTLP request MUST be updated
     as well."""
 
-    resourceSpans: List[ResourceSpans]
+    resourceSpans: list[ResourceSpans]
 
 
 class BatchesData(TypedDict):
-    batches: List[ResourceSpans]
+    batches: list[ResourceSpans]
