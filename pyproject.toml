@@ -9,10 +9,10 @@ package-mode = true
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pydantic = ">=1.10.0"
 pytest = "*"
 requests = "*"
 backoff = "^2.2.1"
+typing-extensions = ">=4.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
