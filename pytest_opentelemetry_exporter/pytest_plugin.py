@@ -4,6 +4,7 @@ import logging
 import os
 import sqlite3
 import uuid
+from pathlib import Path
 from typing import Any
 
 import backoff
@@ -13,12 +14,13 @@ import requests
 # Shared lists to keep track of generated IDs
 trace_ids = []
 span_ids = []
+DB_DIRECTORY = Path("otel_test_traces")
+DB_FILE = DB_DIRECTORY / f"traces_{uuid.uuid4()}.sqlite3"
 
 
 def get_db_connection():
     """Establish a connection to the shared SQLite database."""
-    db_path = "shared_data.db"  # Path to your shared SQLite database
-    return sqlite3.connect(db_path)
+    return sqlite3.connect(DB_FILE)
 
 
 def save_id_to_db(table_name: str, id_value: str):
@@ -34,6 +36,7 @@ def save_id_to_db(table_name: str, id_value: str):
 @pytest.fixture(scope="session", autouse=True)
 def _setup_db() -> None:
     """Set up the database before running tests."""
+    DB_DIRECTORY.mkdir(exist_ok=True)
     conn = get_db_connection()
     cursor = conn.cursor()
     # Create the tables if they don't exist
