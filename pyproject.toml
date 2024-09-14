@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "pytest-opentelemetry-exporter"
+version = "0.1.0"
+description = ""
+authors = ["Stanislav Zmiev <zmievsa@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+package-mode = true
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pydantic = ">=1.10.0"
+pytest = "*"
+requests = "*"
+backoff = "^2.2.1"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.6.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
